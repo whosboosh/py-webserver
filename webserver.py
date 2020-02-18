@@ -24,17 +24,29 @@ class WebServer:
         return header.encode()
 
     def handleRequest(self, tcpSocket):
-        data = tcpSocket.recv(1024)
+        data = tcpSocket.recv(1024).decode()
+
+        # Get hostname from request
+        try:
+            requestName = data.split(' ')[1].split("http://")[1]
+        except:
+            print("Only http requests can be made")
+            tcpSocket.close()
+            return
 
         requestMethod = data.split(' ')[0]
 
-        # Build string without query parameters
-        fileToServe = data.split(' ')[1].split('?')[0]
-        fileToServe+=".html"
+        # Remove trailing / on hostname
+        if (requestName[len(requestName)-1] == "/"):
+            requestName = requestName[:-1]
+        requestName+=".html"
 
         response = ""
-        if requestMethod == "GET":       
-            if fileToServe.split(".html")[0] == "/": # Remove the '.html' part and check if on base directory
+        if requestMethod == "GET":
+            # Check if on base directory, if so make file requested simply 'index.html'
+            try:
+                fileToServe = requestName.split("/")[1]
+            except:
                 fileToServe = "index.html"
 
             print("Serving page {pages}".format(pages=fileToServe))
@@ -47,7 +59,7 @@ class WebServer:
                 file.close()                
             except:
                 print("File not found")
-                responseData = "<head><title>404</title><body>404</body></head>"
+                responseData = "<head><title>404</title><body>404</body></head>".encode()
                 responseHeader = self.generateHeader(404)
 
             response = (responseHeader+responseData)
