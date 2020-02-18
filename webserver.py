@@ -4,19 +4,19 @@
 import socket
 import sys
 import threading
-import time
-import signal
 
 class WebServer:
+
+    MAX_CONNECTIONS = 5
+
     def __init__(self, host, port):
         self.host = host
         self.port = port
 
-
     def generateHeader(self, code):
         header = ""
         if code == 200:
-            header += "HTTP/1.1 200 OK\n"
+            header += "HTTP/21.1 200 OK\n"
         elif code == 404:
             header += "HTTP/1.1 404 Not Found\n"
 
@@ -32,6 +32,7 @@ class WebServer:
         fileToServe = data.split(' ')[1].split('?')[0]
         fileToServe+=".html"
 
+        response = ""
         if requestMethod == "GET":       
             if fileToServe.split(".html")[0] == "/": # Remove the '.html' part and check if on base directory
                 fileToServe = "index.html"
@@ -51,8 +52,8 @@ class WebServer:
 
             response = (responseHeader+responseData)
 
-            tcpSocket.send(response)
-            tcpSocket.close()
+        tcpSocket.send(response)
+        tcpSocket.close()
 
     def startServer(self):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Create socket object
@@ -63,10 +64,9 @@ class WebServer:
             print("Started server on port: {port}".format(port=self.port))
         except:
             print("Failed to bind to port {port}".format(port=self.port))
-            self.shutdownServer()
-            sys.exit(1)
+            self.server.close()
 
-        self.server.listen(5) # Listen to connections
+        self.server.listen(self.MAX_CONNECTIONS) # Listen to connections (MAX 5)
 
         # Indefinetly listen for any new incoming connections
         while True:
@@ -75,18 +75,5 @@ class WebServer:
             print("Received connection from {addr}".format(addr=address))
             threading.Thread(target=self.handleRequest, args=([client])).start() # Create a thread for this connection
 
-    def shutdownServer(self):
-        try:
-            self.server.close()
-            self.server.shutdown(socket.SHUT_RDWR)
-            sys.exit(1)
-        except:
-            pass
-
-def shutdown(signal, unused):
-    server.shutdownServer()
-    sys.exit(1)
-
-signal.signal(signal.SIGINT, shutdown)
 server = WebServer("localhost", 3003)
 server.startServer()
