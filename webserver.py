@@ -39,7 +39,6 @@ class WebServer:
         # Remove trailing / on hostname
         if (requestName[len(requestName)-1] == "/"):
             requestName = requestName[:-1]
-        requestName+=".html"
 
         response = ""
         if requestMethod == "GET":
@@ -48,6 +47,10 @@ class WebServer:
                 fileToServe = requestName.split("/")[1]
             except:
                 fileToServe = "index.html"
+
+            # If file doesn't have .html ending, add it
+            if fileToServe[-5:] != ".html":
+                fileToServe+=".html"    
 
             print("Serving page {pages}".format(pages=fileToServe))
 
