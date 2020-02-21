@@ -40,7 +40,7 @@ class WebServer:
         if (requestName[len(requestName)-1] == "/"):
             requestName = requestName[:-1]
 
-        response = ""
+        response = "".encode()
         if requestMethod == "GET":
             # Check if on base directory, if so make file requested simply 'index.html'
             try:
@@ -90,5 +90,5 @@ class WebServer:
             print("Received connection from {addr}".format(addr=address))
             threading.Thread(target=self.handleRequest, args=([client])).start() # Create a thread for this connection
 
-server = WebServer("localhost", 3003)
+server = WebServer("localhost", 3004)
 server.startServer()
